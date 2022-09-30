@@ -3,4 +3,6 @@ project(OmSTU_CS)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(OmSTU_CS main.cpp)
+set(HEADERS omstl/list.h)
+
+add_executable(OmSTU_CS main.cpp ${HEADERS})
