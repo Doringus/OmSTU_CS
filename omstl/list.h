@@ -4,6 +4,8 @@
 #include <list>
 #include <iostream>
 
+#include "iterator.h"
+
 namespace  omstl {
 
     struct listNodeBase_t {
@@ -49,6 +51,8 @@ namespace  omstl {
     public:
         using iterator = ListIterator<T, T*, T&>;
         using const_iterator = ListIterator<T, T const *, T const &>;
+        using reverse_iterator = ReverseIterator<iterator>;
+        using const_reverse_iterator = ReverseIterator<const_iterator>;
     public:
 
         List() {
@@ -63,6 +67,26 @@ namespace  omstl {
         constexpr iterator end() noexcept;
         constexpr const_iterator end() const noexcept;
         constexpr const_iterator cend() const noexcept;
+
+        constexpr decltype(auto) rbegin() noexcept {
+            return std::make_reverse_iterator(end());
+        }
+        constexpr decltype(auto) rbegin() const noexcept {
+            return std::make_reverse_iterator(end());
+        }
+        constexpr decltype(auto) crbegin() const noexcept {
+            return std::make_reverse_iterator(cend());
+        }
+
+        constexpr decltype(auto) rend() noexcept {
+            return std::make_reverse_iterator(begin());
+        }
+        constexpr decltype(auto) rend() const noexcept {
+            return std::make_reverse_iterator(begin());
+        }
+        constexpr decltype(auto) crend() const noexcept {
+            return std::make_reverse_iterator(cbegin());
+        }
 
         void push_back(T&& value);
 
@@ -183,6 +207,13 @@ namespace  omstl {
     constexpr inline typename List<T, Alloc>::const_iterator List<T, Alloc>::cend() const noexcept {
         return const_iterator(&m_End);
     }
+
+    /*
+    template<typename T, typename Alloc>
+    constexpr inline typename List<T, Alloc>::reverse_iterator List<T, Alloc>::rbegin() noexcept {
+
+        return reverse_iterator(iterator(&m_End));
+    }*/
 
     template<typename T, typename Alloc>
     inline void List<T, Alloc>::push_back(T&& value) {

@@ -22,5 +22,8 @@ int main() {
     for(const auto& e : list) {
         std::cout << e;
     }
+    std::cout << "\n";
+    auto it = list.rbegin();
+    std::cout << *it;
     return 0;
 }
