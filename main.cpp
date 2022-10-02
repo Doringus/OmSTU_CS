@@ -19,7 +19,8 @@ int main() {
     list.push_front(2);
     list.push_back(3);
     list.push_front(4);
-    list.test();
-    std::cout << "Hello, World!" << std::endl;
+    for(const auto& e : list) {
+        std::cout << e;
+    }
     return 0;
 }
