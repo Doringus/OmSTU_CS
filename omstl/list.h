@@ -69,23 +69,47 @@ namespace  omstl {
         constexpr const_iterator cend() const noexcept;
 
         constexpr decltype(auto) rbegin() noexcept {
+        #ifdef OMSTL_ITERATORS
+            return reverse_iterator(end());
+        #else
             return std::make_reverse_iterator(end());
+        #endif
         }
         constexpr decltype(auto) rbegin() const noexcept {
+        #ifdef OMSTL_ITERATORS
+            return reverse_iterator(end());
+        #else
             return std::make_reverse_iterator(end());
+        #endif
         }
         constexpr decltype(auto) crbegin() const noexcept {
+        #ifdef OMSTL_ITERATORS
+            return reverse_iterator(cend());
+        #else
             return std::make_reverse_iterator(cend());
+        #endif
         }
 
         constexpr decltype(auto) rend() noexcept {
+        #ifdef OMSTL_ITERATORS
+            return reverse_iterator(begin());
+        #else
             return std::make_reverse_iterator(begin());
+        #endif
         }
         constexpr decltype(auto) rend() const noexcept {
+        #ifdef OMSTL_ITERATORS
+            return reverse_iterator(begin());
+        #else
             return std::make_reverse_iterator(begin());
+        #endif
         }
         constexpr decltype(auto) crend() const noexcept {
+        #ifdef OMSTL_ITERATORS
+            return reverse_iterator(cbegin());
+        #else
             return std::make_reverse_iterator(cbegin());
+        #endif
         }
 
         void push_back(T&& value);

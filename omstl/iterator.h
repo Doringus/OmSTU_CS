@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iterator>
+#include <type_traits>
 
 namespace omstl {
 
@@ -17,7 +18,7 @@ namespace omstl {
         constexpr explicit ReverseIterator(It iterator) noexcept : m_It(iterator) { }
 
         constexpr reference operator*() const noexcept;
-      //  constexpr pointer operator->() const noexcept;
+        constexpr pointer operator->() const noexcept;
 
         constexpr ReverseIterator<It>& operator++() noexcept;
         constexpr ReverseIterator<It> operator++(int) & noexcept;
@@ -35,11 +36,16 @@ namespace omstl {
     constexpr inline typename ReverseIterator<It>::reference ReverseIterator<It>::operator*() const noexcept {
         return *std::prev(m_It);
     }
-    /*
+
     template<typename It>
     constexpr inline typename ReverseIterator<It>::pointer ReverseIterator<It>::operator->() const noexcept {
-        return nullptr;
-    }*/
+        auto it = std::prev(m_It);
+        if constexpr(std::is_pointer_v<It>) {
+            return it;
+        } else {
+            return it.operator->();
+        }
+    }
 
     template<typename It>
     constexpr inline ReverseIterator<It>& ReverseIterator<It>::operator++() noexcept {
