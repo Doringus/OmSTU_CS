@@ -11,7 +11,29 @@ namespace  omstl {
     struct listNodeBase_t {
         listNodeBase_t* next = nullptr;
         listNodeBase_t* prev = nullptr;
+
+        void insert_before(listNodeBase_t& node) noexcept {
+            node.next = this;
+            node.prev = this->prev;
+            this->prev = &node;
+        }
     };
+
+    static void swap_nodes(listNodeBase_t& lhs, listNodeBase_t& rhs) noexcept {
+        lhs.prev->next = &rhs;
+        rhs.prev = lhs.prev;
+        rhs.next->prev = &lhs;
+        lhs.next = rhs.next;
+        rhs.next = &lhs;
+        lhs.prev = &rhs;
+    }
+
+    static void cut_segment(listNodeBase_t& lhs, listNodeBase_t& rhs) noexcept {
+        lhs.prev->next = rhs.next;
+        rhs.next->prev = lhs.prev;
+        lhs.prev = nullptr;
+        rhs.next = nullptr;
+    }
 
     template <typename T>
     struct listNode_t : public listNodeBase_t {
@@ -42,7 +64,7 @@ namespace  omstl {
 
         friend auto operator<=>(const ListIterator& lhs, const ListIterator& rhs) = default;
 
-    private:
+    public:
         node_type* m_Node;
     };
 
@@ -122,9 +144,7 @@ namespace  omstl {
         template <typename... Args>
         void emplace_front(Args&&... args);
 
-        void sort() {
-
-        }
+        void sort();
 
     private:
 
@@ -141,6 +161,8 @@ namespace  omstl {
             node->prev = &m_End;
             m_End.next = node;
         }
+
+        iterator merge_sort(iterator begin, iterator end, size_t elementsCount);
 
     private:
         Alloc m_Allocator;
@@ -232,13 +254,6 @@ namespace  omstl {
         return const_iterator(&m_End);
     }
 
-    /*
-    template<typename T, typename Alloc>
-    constexpr inline typename List<T, Alloc>::reverse_iterator List<T, Alloc>::rbegin() noexcept {
-
-        return reverse_iterator(iterator(&m_End));
-    }*/
-
     template<typename T, typename Alloc>
     inline void List<T, Alloc>::push_back(T&& value) {
         auto node = m_Allocator.allocate(1);
@@ -249,14 +264,14 @@ namespace  omstl {
 
     template<typename T, typename Alloc>
     template<typename... Args>
-    void List<T, Alloc>::emplace_back(Args&&... args) {
+    inline void List<T, Alloc>::emplace_back(Args&&... args) {
         auto node = m_Allocator.allocate(1);
         new (node->data) T(std::forward<Args>(args)...);
         store_back(node);
     }
 
     template<typename T, typename Alloc>
-    void List<T, Alloc>::push_front(T&& value) {
+    inline void List<T, Alloc>::push_front(T&& value) {
         auto node = m_Allocator.allocate(1);
         new (node->data) T(std::forward<T>(value));
         store_front(node);
@@ -265,10 +280,52 @@ namespace  omstl {
 
     template<typename T, typename Alloc>
     template<typename... Args>
-    void List<T, Alloc>::emplace_front(Args&&... args) {
+    inline void List<T, Alloc>::emplace_front(Args&&... args) {
         auto node = m_Allocator.allocate(1);
         new (node->data) T(std::forward<Args>(args)...);
         store_front(node);
+    }
+
+    template<typename T, typename Alloc>
+    void List<T, Alloc>::sort() {
+        merge_sort(begin(), end(), m_Size);
+    }
+
+    template<typename T, typename Alloc>
+    typename List<T, Alloc>::iterator
+    List<T, Alloc>::merge_sort(List::iterator lhs, List::iterator rhs, size_t elementsCount) {
+        if(elementsCount == 1) {
+            return lhs;
+        } else if(elementsCount == 2) {
+            if(*lhs > *rhs) {
+                swap_nodes(*lhs.m_Node, *rhs.m_Node);
+                return rhs;
+            }
+            return lhs;
+        }
+
+        size_t mid = elementsCount / 2;
+        auto midIt = std::next(lhs, mid);
+        lhs = merge_sort(lhs, midIt, mid);
+        auto rightPart = merge_sort(midIt, rhs, elementsCount - mid);
+
+        /// Merge segments
+        midIt = rightPart;
+        iterator result(rhs);
+        for(; (lhs != midIt) && (rightPart != rhs); lhs++) {
+            if(*lhs > *rightPart) {
+                auto subsegmentEnd = std::next(rightPart);
+                while((subsegmentEnd != rhs) && (*subsegmentEnd < *lhs)) {
+                    subsegmentEnd++;
+                }
+                auto* nodeSubsegmentBegin = rightPart.m_Node;
+                auto* nodeSubsegmentEnd = subsegmentEnd.m_Node;
+                rightPart = subsegmentEnd;
+                cut_segment(*nodeSubsegmentBegin, *nodeSubsegmentEnd);
+                lhs.m_Node->insert_before(*nodeSubsegmentEnd);
+            }
+        }
+        return result;
     }
 
 }
